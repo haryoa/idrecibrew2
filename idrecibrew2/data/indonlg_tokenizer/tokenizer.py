@@ -1,27 +1,16 @@
-# coding=utf-8
-# Copyright 2018 Google AI, Google Brain and Carnegie Mellon University Authors and the HuggingFace Inc. team.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License
+# pylint: disable=all
+# type: ignore
+# flake8: noqa
+
+# Copy pasta from IndoNLG repository
+
 """ Tokenization classes for IndoNLG model."""
 
-import os
-from shutil import copyfile
-from typing import List, Optional, Tuple
-from transformers import PreTrainedTokenizer
+import logging
+from typing import List, Optional
 
 import sentencepiece as spm
-
-import logging
+from transformers import PreTrainedTokenizer
 
 logger = logging.getLogger(__name__)
 
@@ -49,6 +38,7 @@ SHARED_MODEL_IDENTIFIERS = [
 ]
 
 SPIECE_UNDERLINE = "▁"
+
 
 class IndoNLGTokenizer(PreTrainedTokenizer):
     vocab_files_names = VOCAB_FILES_NAMES
@@ -87,8 +77,9 @@ class IndoNLGTokenizer(PreTrainedTokenizer):
         self.vocab_file = vocab_file
         self.decode_special_token = decode_special_token
         self.model_max_length = 1024
-        
-        # HACK: These tokens were added by fairseq but don't seem to be actually used when duplicated in the actual
+
+        # HACK: These tokens were added by fairseq but don't seem 
+        # to be actually used when duplicated in the actual
         # sentencepiece vocabulary (this is the case for <s> and </s>
         self.special_tokens_to_ids = {
             "[java]": 40000, 
@@ -97,7 +88,7 @@ class IndoNLGTokenizer(PreTrainedTokenizer):
             "<mask>": 40003
         }
         self.special_ids_to_tokens = {v: k for k, v in self.special_tokens_to_ids.items()}
-        
+
         # Store Language token ID
         self.javanese_token = '[javanese]'
         self.javanese_token_id = 40000
@@ -105,13 +96,12 @@ class IndoNLGTokenizer(PreTrainedTokenizer):
         self.sundanese_token_id = 40001
         self.indonesian_token = '[indonesia]'
         self.indonesian_token_id = 40002
-        
         self.special_token_ids = [
             self.bos_token_id, self.eos_token_id, self.sep_token_id, self.cls_token_id, 
             self.unk_token_id, self.pad_token_id, self.mask_token_id,
             self.javanese_token_id, self.sundanese_token_id, self.indonesian_token_id
         ]
-        
+
     def build_inputs_with_special_tokens(
         self, token_ids_0: List[int], token_ids_1: Optional[List[int]] = None
     ) -> List[int]:
@@ -169,8 +159,10 @@ class IndoNLGTokenizer(PreTrainedTokenizer):
         self, token_ids_0: List[int], token_ids_1: Optional[List[int]] = None
     ) -> List[int]:
         """
-        Create a mask from the two sequences passed to be used in a sequence-pair classification task. CamemBERT, like
-        RoBERTa, does not make use of token type ids, therefore a list of zeros is returned.
+        Create a mask from the two sequences passed to be used 
+        in a sequence-pair classification task. CamemBERT, like
+        RoBERTa, does not make use of token type ids, therefore 
+        a list of zeros is returned.
 
         Args:
             token_ids_0 (:obj:`List[int]`):
