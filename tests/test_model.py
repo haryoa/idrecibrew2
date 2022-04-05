@@ -21,6 +21,6 @@ def test_forward_model():
         optimizer="adam",
         learning_rate=1e-5,
     )
-    lit_model = LitSeq2SeqTransformers(lit_model_args=lit_model_args)
+    lit_model = LitSeq2SeqTransformers(config=lit_model_args)
     lit_model.set_eval_object(eval_obj)
     lit_model(input_ids=input_ids, attention_mask=attention_mask, labels=labels)
