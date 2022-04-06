@@ -80,13 +80,13 @@ class LitSeq2SeqTransformers(LightningModule):
             num_beam_groups=1,
         )
         
-        self.log("val_loss", val_loss)
-        return {"val_loss": val_loss, "preds": argmax, "tgts": batch.labels}
+        self.log("test_loss", val_loss)
+        return {"test_loss": val_loss, "preds": argmax, "tgts": batch.labels}
 
     def test_epoch_end(self, outputs):  # type: ignore  # pylint disable=all
         if self.eval_obj is not None:
             bleu_score = self.eval_obj.compute_eval(outputs['preds'], outputs['tgts'])
-            self.log("val_bleu", bleu_score, prog_bar=True)
+            self.log("test_bleu", bleu_score, prog_bar=True)
 
     def _init_model(self) -> None:
         if self.config.model_type == "indobart-v2":
