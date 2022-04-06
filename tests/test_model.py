@@ -23,4 +23,7 @@ def test_forward_model():
     )
     lit_model = LitSeq2SeqTransformers(config=lit_model_args)
     lit_model.set_eval_object(eval_obj)
-    lit_model(input_ids=input_ids, attention_mask=attention_mask, labels=labels)
+    result = lit_model(
+        input_ids=input_ids, attention_mask=attention_mask, labels=labels
+    )
+    assert result.logits.shape == (2, 3, tokenizer.vocab_size)

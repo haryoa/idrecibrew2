@@ -8,7 +8,7 @@ from idrecibrew2.mixin import MappingMixin  # type: ignore
 
 
 @dataclass
-class LitSeq2SeqTransformerArgs(MappingMixin):  # type: ignore
+class LitSeq2SeqTransformersArgs(MappingMixin):  # type: ignore
     """
     Arguments for LitSeq2SeqTransformer
 

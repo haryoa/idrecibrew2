@@ -9,7 +9,7 @@ from torch.optim import Adam, AdamW
 from torch.optim.lr_scheduler import StepLR
 from transformers import AutoModelForSeq2SeqLM, get_linear_schedule_with_warmup
 
-from .lit_args import LitSeq2SeqTransformerArgs
+from .lit_args import LitSeq2SeqTransformersArgs
 from idrecibrew2.eval.training_eval import Seq2SeqTrainingEval
 
 
@@ -18,7 +18,7 @@ class LitSeq2SeqTransformers(LightningModule):
     Lightning Module for Seq2Sweq
     """
 
-    def __init__(self, config: LitSeq2SeqTransformerArgs) -> None:
+    def __init__(self, config: LitSeq2SeqTransformersArgs) -> None:
         super().__init__()
         self.save_hyperparameters()
         self.config = config
@@ -146,7 +146,7 @@ class LitSeq2SeqTransformers(LightningModule):
         self, optimizer_grouped_parameters: List[Dict[str, Any]]
     ) -> Union[Adam, AdamW]:
         if self.config.optimizer_type == "adamw":
-            opt = AdamW(
+            opt: Union[AdamW, Adam] = AdamW(
                 optimizer_grouped_parameters,
                 lr=self.config.lr,
                 betas=self.config.optimizer_beta,
