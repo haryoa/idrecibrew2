@@ -63,7 +63,7 @@ class LitSeq2SeqTransformers(LightningModule):
 
     def validation_epoch_end(self, outputs):  # type: ignore  # pylint disable=all
         if self.eval_obj is not None:
-            bleu_score = self.eval_obj.compute_eval(outputs['preds'], outputs['tgts'])
+            bleu_score = self.eval_obj.compute_eval(outputs, target_cols="tgts", pred_cols="preds")
             self.log("val_bleu", bleu_score, prog_bar=True)
 
     def test_step(self, batch, batch_idx):  # type: ignore  # pylint disable=all
