@@ -148,7 +148,7 @@ class LitSeq2SeqTransformers(LightningModule):
         if self.config.optimizer_type == "adamw":
             opt: Union[AdamW, Adam] = AdamW(
                 optimizer_grouped_parameters,
-                lr=self.config.lr,
+                lr=self.config.learning_rate,
                 betas=self.config.optimizer_beta,
                 eps=self.config.optimizer_epsilon,
                 weight_decay=self.config.weight_decay,
@@ -156,7 +156,7 @@ class LitSeq2SeqTransformers(LightningModule):
         elif self.config.optimizer_type == "adam":
             opt = Adam(
                 optimizer_grouped_parameters,
-                lr=self.config.lr,
+                lr=self.config.learning_rate,
                 betas=self.config.optimizer_beta,
                 eps=self.config.optimizer_epsilon,
                 weight_decay=self.config.weight_decay,

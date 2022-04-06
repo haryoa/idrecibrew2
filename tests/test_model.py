@@ -18,7 +18,7 @@ def test_forward_model():
     lit_model_args = LitSeq2SeqTransformersArgs(
         model_type="indobart-v2",
         vocab_size=tokenizer.vocab_size,
-        optimizer="adam",
+        optimizer_type="adam",
         learning_rate=1e-5,
     )
     lit_model = LitSeq2SeqTransformers(config=lit_model_args)
