@@ -2,9 +2,14 @@
 Seq2Seq datafactory place
 """
 from dataclasses import dataclass
+from math import trunc
 from typing import Any, Dict
 
-from transformers import PreTrainedTokenizer, DataCollatorForSeq2Seq
+from transformers import (
+    DataCollatorForLanguageModeling,
+    PreTrainedTokenizer,
+    DataCollatorForSeq2Seq,
+)
 import pandas as pd
 from datasets import Dataset
 from torch.utils.data import DataLoader
@@ -23,6 +28,9 @@ class Seq2SeqDataFactoryArgs:
         Source or input column of the data
     label_column: str
         Target column of the data
+    training_type: str
+        Architecture of the model. Choices:
+        `seq2seq` or `lm`
     """
 
     tokenizer: PreTrainedTokenizer
@@ -30,6 +38,7 @@ class Seq2SeqDataFactoryArgs:
     label_column: str = "tgt"
     max_input_length: int = 128
     max_target_length: int = 256
+    training_type: str = "seq2seq"
 
 
 class Seq2SeqDataFactory:
@@ -78,9 +87,15 @@ class Seq2SeqDataFactory:
         df_csv = pd.read_csv(csv_file)
         dataset = Dataset.from_pandas(df_csv)
         old_column = dataset.column_names
-        dataset = dataset.map(self._preprocess_function, batched=True)
+        dataset = dataset.map(self._preprocess_function_seq2seq, batched=True)
         dataset = dataset.remove_columns(old_column)
-        collator = DataCollatorForSeq2Seq(self.data_args.tokenizer, padding=True)
+        collator = (
+            DataCollatorForSeq2Seq(self.data_args.tokenizer, padding=True)
+            if self.data_args.training_type == "seq2seq"
+            else DataCollatorForLanguageModeling(
+                tokenizer=self.data_args.tokenizer, mlm=False
+            )
+        )
         dl_ready: DataLoader = DataLoader(  # type: ignore
             dataset,  # type: ignore
             batch_size=batch_size,
@@ -101,9 +116,24 @@ class Seq2SeqDataFactory:
         """
         return self.data_args.tokenizer.vocab_size
 
-    def _preprocess_function(self, examples: Any) -> Dict[str, Any]:
+    def _preprocess_function_lm(self, examples: Any) -> Dict[str, Any]:
         """
-        Preprocess function!
+        preprocess function for language modeling (gpt)
+        model input become [inputs]>>[target]
+        """
+        inputs = examples[self.data_args.source_column]
+        labels = examples[self.data_args.label_column]
+        concatenated_inp = inputs + ">>" + labels
+        model_inputs: Dict[str, Any] = self.data_args.tokenizer(
+            concatenated_inp,
+            max_length=self.data_args.max_input_length,
+            truncation=True,
+        )
+        return model_inputs
+
+    def _preprocess_function_seq2seq(self, examples: Any) -> Dict[str, Any]:
+        """
+        Preprocess function for seq2seq problem! (bart and t5)
         """
         inputs = examples[self.data_args.source_column]
         model_inputs: Dict[str, Any] = self.data_args.tokenizer(
