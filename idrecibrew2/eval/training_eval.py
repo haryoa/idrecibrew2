@@ -4,8 +4,9 @@ Training evaluation module
 
 from typing import Dict, List
 from transformers import PreTrainedTokenizer
-from torchmetrics import BLEUScore
+# from torchmetrics import BLEUScore
 import torch
+import sacrebleu
 
 
 class Seq2SeqTrainingEval:  # pylint: disable=too-few-public-methods
@@ -15,7 +16,7 @@ class Seq2SeqTrainingEval:  # pylint: disable=too-few-public-methods
 
     def __init__(self, tokenizer: PreTrainedTokenizer) -> None:
         self.tokenizer = tokenizer
-        self.eval_metric = BLEUScore()
+#         self.eval_metric = BLEUScore()
 
     def compute_eval(
         self,
@@ -49,8 +50,8 @@ class Seq2SeqTrainingEval:  # pylint: disable=too-few-public-methods
             decoded_predicted: List[str] = list(map(self.tokenizer.decode, pred))
             target[target == -100] = self.tokenizer.pad_token_id  # type: ignore
             decoded_target: List[str] = list(map(self.tokenizer.decode, target))
-            decoded_target_formatted = list(map(lambda x: [x], decoded_target))
+#             decoded_target_formatted = list(map(lambda x: x, decoded_target))
             agg_preds.extend(decoded_predicted)
-            agg_tgts.extend(decoded_target_formatted)
-        bleu_score: float = self.eval_metric(agg_preds, agg_tgts).item()
+            agg_tgts.extend(decoded_target)
+        bleu_score: float = sacrebleu.corpus_bleu(agg_preds, [agg_tgts]).score
         return bleu_score

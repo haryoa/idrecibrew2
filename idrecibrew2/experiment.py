@@ -68,6 +68,7 @@ scenarios = {
             "name": "indobert-v2"
         },
         "batch_size": 32,
+        "data_n_workers": 4
     }
 }
 
@@ -112,7 +113,7 @@ class Experiment:
         
         for key, csv_file in [("train_dataloaders", self.scenario_config.train_csv_path), ("val_dataloaders", self.scenario_config.dev_csv_path)]:
             self.dataloaders[key] = data_factory.produce_dataloader_from_csv(
-                csv_file=csv_file, batch_size=self.scenario_config.batch_size, n_workers=self.scenario_config.data_n_workers
+                csv_file=csv_file, batch_size=self.scenario_config.batch_size, n_workers=self.scenario_config.data_n_workers, shuffle=key=='train_dataloaders'
             )
     
     def pipe_train(self):
