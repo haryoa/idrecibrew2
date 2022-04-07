@@ -9,7 +9,7 @@ from pytorch_lightning import Trainer
 from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
 from pytorch_lightning.loggers import WandbLogger
 from torch.utils.data import DataLoader
-from transformers import PreTrainedTokenizer
+from transformers import AutoTokenizer, PreTrainedTokenizer
 import rich
 from rich.console import Console
 
@@ -73,7 +73,11 @@ scenarios = {
         "output_dir": "outputs/indogpt/",
         "train_csv_path": "data/processed/train.csv",
         "dev_csv_path": "data/processed/dev.csv",
-        "data_factory_args": {"source_column": "src", "label_column": "tgt", "training_type": "lm"},
+        "data_factory_args": {
+            "source_column": "src",
+            "label_column": "tgt",
+            "training_type": "lm",
+        },
         "lit_trainer_args": {
             "precision": 16,
             "max_epochs": 100,
@@ -94,8 +98,39 @@ scenarios = {
         "batch_size": 32,
         "data_n_workers": 4,
         "tokenizer": "indobenchmark/indogpt",
-        "skip_eval_bleu": True  # we check the BLEU in the testing and evaluation
-    }
+        "skip_eval_bleu": True,  # we check the BLEU in the testing and evaluation
+    },
+    "indo-t5": {
+        "output_dir": "outputs/indo-t5/",
+        "train_csv_path": "data/processed/train.csv",
+        "dev_csv_path": "data/processed/dev.csv",
+        "data_factory_args": {
+            "source_column": "src",
+            "label_column": "tgt",
+            "training_type": "seq2seq",
+        },
+        "lit_trainer_args": {
+            "precision": 16,
+            "max_epochs": 100,
+        },
+        "model_args": {
+            "model_type": "Wikidepia/IndoT5-base",
+            "optimizer_type": "adam",
+            "learning_rate": 5e-5,
+        },
+        "model_ckpt_args": {
+            "monitor": "val_loss",
+            "filename": "model-{epoch:02d}-{val_loss:.3f}",
+            "mode": "min",
+            "save_last": True,
+        },
+        "early_stopping_args": {"monitor": "val_loss", "patience": 5, "mode": "min"},
+        "wandb_loggers_args": {"project": "indorecibrew2", "name": "indogpt"},
+        "batch_size": 32,
+        "data_n_workers": 4,
+        "tokenizer": "Wikidepia/IndoT5-base",
+        "skip_eval_bleu": True,  # Skip for faster training (trf decoder is kinda slow)
+    },
 }
 
 
@@ -144,8 +179,8 @@ class Experiment:
                 self.scenario_config.tokenizer
             )
         else:
-            raise NotImplementedError(
-                f"Tokenizer {self.scenario_config.tokenizer} is not implemented"
+            self.tokenizer = AutoTokenizer.from_pretrained(
+                self.scenario_config.tokenizer
             )
         data_args = Seq2SeqDataFactoryArgs(
             tokenizer=self.tokenizer, **self.scenario_config.data_factory_args

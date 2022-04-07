@@ -107,6 +107,8 @@ class LitSeq2SeqTransformers(LightningModule):
             )
         elif self.config.model_type == "indogpt":
             self.model = GPT2LMHeadModel.from_pretrained("indobenchmark/indogpt")
+        else:  # others are seq2seqLM like bart by inputting the model_type
+            self.model = AutoModelForSeq2SeqLM.from_pretrained(self.config.model_type)
 
     def configure_optimizers(self) -> Any:
         """
