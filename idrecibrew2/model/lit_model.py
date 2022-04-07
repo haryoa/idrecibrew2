@@ -7,7 +7,11 @@ from typing import Any, Dict, List, Optional, Union
 from pytorch_lightning import LightningModule
 from torch.optim import Adam, AdamW
 from torch.optim.lr_scheduler import StepLR
-from transformers import AutoModelForSeq2SeqLM, get_linear_schedule_with_warmup
+from transformers import (
+    AutoModelForSeq2SeqLM,
+    GPT2LMHeadModel,
+    get_linear_schedule_with_warmup,
+)
 
 from .lit_args import LitSeq2SeqTransformersArgs
 from idrecibrew2.eval.training_eval import Seq2SeqTrainingEval
@@ -57,13 +61,15 @@ class LitSeq2SeqTransformers(LightningModule):
             num_beams=1,
             num_beam_groups=1,
         )
-        
+
         self.log("val_loss", val_loss)
         return {"val_loss": val_loss, "preds": argmax, "tgts": batch.labels}
 
     def validation_epoch_end(self, outputs):  # type: ignore  # pylint disable=all
         if self.eval_obj is not None:
-            bleu_score = self.eval_obj.compute_eval(outputs, target_cols="tgts", pred_cols="preds")
+            bleu_score = self.eval_obj.compute_eval(
+                outputs, target_cols="tgts", pred_cols="preds"
+            )
             self.log("val_bleu", bleu_score, prog_bar=True)
 
     def test_step(self, batch, batch_idx):  # type: ignore  # pylint disable=all
@@ -79,13 +85,13 @@ class LitSeq2SeqTransformers(LightningModule):
             num_beams=1,
             num_beam_groups=1,
         )
-        
+
         self.log("test_loss", val_loss)
         return {"test_loss": val_loss, "preds": argmax, "tgts": batch.labels}
 
     def test_epoch_end(self, outputs):  # type: ignore  # pylint disable=all
         if self.eval_obj is not None:
-            bleu_score = self.eval_obj.compute_eval(outputs['preds'], outputs['tgts'])
+            bleu_score = self.eval_obj.compute_eval(outputs["preds"], outputs["tgts"])
             self.log("test_bleu", bleu_score, prog_bar=True)
 
     def _init_model(self) -> None:
@@ -93,6 +99,8 @@ class LitSeq2SeqTransformers(LightningModule):
             self.model = AutoModelForSeq2SeqLM.from_pretrained(  # type: ignore
                 "indobenchmark/indobart-v2"
             )
+        elif self.config.model_type == "indogpt":
+            self.model = GPT2LMHeadModel.from_pretrained("indobenchmark/indogpt")
 
     def configure_optimizers(self) -> Any:
         """
