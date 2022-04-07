@@ -54,13 +54,16 @@ class LitSeq2SeqTransformers(LightningModule):
         val_loss, logits = outputs[:2]
 
         # Greedy
-        argmax = self.model.generate(
-            input_ids=batch["input_ids"].to(self.device),
-            max_length=150,
-            num_return_sequences=1,
-            num_beams=1,
-            num_beam_groups=1,
-        )
+        argmax = None
+        
+        if self.eval_obj is not None:
+            argmax = self.model.generate(
+                input_ids=batch["input_ids"].to(self.device),
+                max_length=150,
+                num_return_sequences=1,
+                num_beams=1,
+                num_beam_groups=1,
+            )
 
         self.log("val_loss", val_loss)
         return {"val_loss": val_loss, "preds": argmax, "tgts": batch.labels}
@@ -77,14 +80,17 @@ class LitSeq2SeqTransformers(LightningModule):
         outputs = self(**batch)
         val_loss, logits = outputs[:2]
 
-        # Greedy
-        argmax = self.model.generate(
-            input_ids=batch["input_ids"].to(self.device),
-            max_length=150,
-            num_return_sequences=1,
-            num_beams=1,
-            num_beam_groups=1,
-        )
+       # Greedy
+        argmax = None
+        
+        if self.eval_obj is not None:
+            argmax = self.model.generate(
+                input_ids=batch["input_ids"].to(self.device),
+                max_length=150,
+                num_return_sequences=1,
+                num_beams=1,
+                num_beam_groups=1,
+            )
 
         self.log("test_loss", val_loss)
         return {"test_loss": val_loss, "preds": argmax, "tgts": batch.labels}

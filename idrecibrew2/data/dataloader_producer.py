@@ -87,7 +87,8 @@ class Seq2SeqDataFactory:
         df_csv = pd.read_csv(csv_file)
         dataset = Dataset.from_pandas(df_csv)
         old_column = dataset.column_names
-        dataset = dataset.map(self._preprocess_function_seq2seq, batched=True)
+        preprocess_func = self._preprocess_function_seq2seq if self.data_args.training_type == "seq2seq" else self._preprocess_function_lm
+        dataset = dataset.map(preprocess_func, batched=True)
         dataset = dataset.remove_columns(old_column)
         collator = (
             DataCollatorForSeq2Seq(self.data_args.tokenizer, padding=True)
@@ -123,7 +124,7 @@ class Seq2SeqDataFactory:
         """
         inputs = examples[self.data_args.source_column]
         labels = examples[self.data_args.label_column]
-        concatenated_inp = inputs + ">>" + labels
+        concatenated_inp = [inp + " >>> " + lab for inp, lab in list(zip(inputs, labels))]
         model_inputs: Dict[str, Any] = self.data_args.tokenizer(
             concatenated_inp,
             max_length=self.data_args.max_input_length,

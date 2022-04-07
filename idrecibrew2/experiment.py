@@ -10,11 +10,16 @@ from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
 from pytorch_lightning.loggers import WandbLogger
 from torch.utils.data import DataLoader
 from transformers import PreTrainedTokenizer
+import rich
+from rich.console import Console
 
 from idrecibrew2.data import Seq2SeqDataFactory, Seq2SeqDataFactoryArgs
 from idrecibrew2.data.indonlg_tokenizer.tokenizer import IndoNLGTokenizer
 from idrecibrew2.eval import Seq2SeqTrainingEval
 from idrecibrew2.model import LitSeq2SeqTransformers, LitSeq2SeqTransformersArgs
+
+
+console = Console()
 
 
 @dataclass
@@ -68,7 +73,7 @@ scenarios = {
         "output_dir": "outputs/indogpt/",
         "train_csv_path": "data/processed/train.csv",
         "dev_csv_path": "data/processed/dev.csv",
-        "data_factory_args": {"source_column": "src", "label_column": "tgt"},
+        "data_factory_args": {"source_column": "src", "label_column": "tgt", "training_type": "lm"},
         "lit_trainer_args": {
             "precision": 16,
             "max_epochs": 100,
@@ -76,7 +81,7 @@ scenarios = {
         "model_args": {
             "model_type": "indogpt",
             "optimizer_type": "adam",
-            "learning_rate": 1e-4,
+            "learning_rate": 5e-5,
         },
         "model_ckpt_args": {
             "monitor": "val_loss",
@@ -88,7 +93,8 @@ scenarios = {
         "wandb_loggers_args": {"project": "indorecibrew2", "name": "indogpt"},
         "batch_size": 32,
         "data_n_workers": 4,
-        "tokenizer": "indobenchmark/indogpt"
+        "tokenizer": "indobenchmark/indogpt",
+        "skip_eval_bleu": True  # we check the BLEU in the testing and evaluation
     }
 }
 
