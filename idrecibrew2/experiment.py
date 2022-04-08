@@ -102,21 +102,21 @@ scenarios = {
     },
     "indo-t5": {
         "output_dir": "outputs/indo-t5/",
-        "train_csv_path": "data/processed/train.csv",
-        "dev_csv_path": "data/processed/dev.csv",
+        "train_csv_path": "data/processed/train_t5.csv",
+        "dev_csv_path": "data/processed/dev_t5.csv",
         "data_factory_args": {
             "source_column": "src",
             "label_column": "tgt",
             "training_type": "seq2seq",
         },
         "lit_trainer_args": {
-            "precision": 16,
+#             "precision": 16,  the pretrained-model cannot do fp16 precision..
             "max_epochs": 100,
         },
         "model_args": {
             "model_type": "Wikidepia/IndoT5-base",
             "optimizer_type": "adam",
-            "learning_rate": 5e-5,
+            "learning_rate": 1e-4,  # following : transformers_summarization_wandb.ipynb in transformers
         },
         "model_ckpt_args": {
             "monitor": "val_loss",
@@ -125,7 +125,7 @@ scenarios = {
             "save_last": True,
         },
         "early_stopping_args": {"monitor": "val_loss", "patience": 5, "mode": "min"},
-        "wandb_loggers_args": {"project": "indorecibrew2", "name": "indogpt"},
+        "wandb_loggers_args": {"project": "indorecibrew2", "name": "indo-t5"},
         "batch_size": 32,
         "data_n_workers": 4,
         "tokenizer": "Wikidepia/IndoT5-base",
@@ -179,6 +179,7 @@ class Experiment:
                 self.scenario_config.tokenizer
             )
         else:
+            print("Auto tokenizer!")
             self.tokenizer = AutoTokenizer.from_pretrained(
                 self.scenario_config.tokenizer
             )
