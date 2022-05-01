@@ -2,7 +2,6 @@
 Seq2Seq datafactory place
 """
 from dataclasses import dataclass
-from math import trunc
 from typing import Any, Dict
 
 from transformers import (

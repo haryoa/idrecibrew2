@@ -1,18 +1,30 @@
-# pylint: disable=all
-# type: ignore
-# flake8: noqa
+# coding=utf-8
+# Copyright 2018 Google AI, Google Brain and Carnegie Mellon University Authors and the HuggingFace Inc. team.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License
+""" Tokenization classes for IndoNLG model. FROM https://github.com/indobenchmark/indonlg"""
 
-# Copy pasta from IndoNLG repository
-
-""" Tokenization classes for IndoNLG model."""
-
-import logging
-from typing import List, Optional
-
-import sentencepiece as spm
+import os
+from shutil import copyfile
+from typing import List, Optional, Tuple
 from transformers import PreTrainedTokenizer
 
-logger = logging.getLogger(__name__)
+import sentencepiece as spm
+
+from transformers.utils import logging
+
+
+logger = logging.get_logger(__name__)
 
 VOCAB_FILES_NAMES = {"vocab_file": "sentencepiece.bpe.model"}
 
@@ -20,13 +32,13 @@ PRETRAINED_VOCAB_FILES_MAP = {
     "vocab_file": {
         "indobart": "https://huggingface.co/indobart/resolve/main/sentencepiece.bpe.model",
         "indogpt": "https://huggingface.co/indogptresolve/main/sentencepiece.bpe.model",
-        "indobenchmark/indobart-v2": "https://huggingface.co/indobart-v2/resolve/main/sentencepiece.bpe.model"
+        "indobart-v2": "https://huggingface.co/indobart-v2/resolve/main/sentencepiece.bpe.model"
     }
 }
 
 PRETRAINED_POSITIONAL_EMBEDDINGS_SIZES = {
     "indobenchmark/indobart": 768,
-    "indobenchmark/indogpt": 768,
+    "ndobenchmark/indogpt": 768,
     "indobenchmark/indobart-v2": 768
 }
 
@@ -38,7 +50,6 @@ SHARED_MODEL_IDENTIFIERS = [
 ]
 
 SPIECE_UNDERLINE = "▁"
-
 
 class IndoNLGTokenizer(PreTrainedTokenizer):
     vocab_files_names = VOCAB_FILES_NAMES
@@ -77,9 +88,8 @@ class IndoNLGTokenizer(PreTrainedTokenizer):
         self.vocab_file = vocab_file
         self.decode_special_token = decode_special_token
         self.model_max_length = 1024
-
-        # HACK: These tokens were added by fairseq but don't seem 
-        # to be actually used when duplicated in the actual
+        
+        # HACK: These tokens were added by fairseq but don't seem to be actually used when duplicated in the actual
         # sentencepiece vocabulary (this is the case for <s> and </s>
         self.special_tokens_to_ids = {
             "[java]": 40000, 
@@ -88,7 +98,7 @@ class IndoNLGTokenizer(PreTrainedTokenizer):
             "<mask>": 40003
         }
         self.special_ids_to_tokens = {v: k for k, v in self.special_tokens_to_ids.items()}
-
+        
         # Store Language token ID
         self.javanese_token = '[javanese]'
         self.javanese_token_id = 40000
@@ -96,28 +106,26 @@ class IndoNLGTokenizer(PreTrainedTokenizer):
         self.sundanese_token_id = 40001
         self.indonesian_token = '[indonesia]'
         self.indonesian_token_id = 40002
+        
         self.special_token_ids = [
             self.bos_token_id, self.eos_token_id, self.sep_token_id, self.cls_token_id, 
             self.unk_token_id, self.pad_token_id, self.mask_token_id,
             self.javanese_token_id, self.sundanese_token_id, self.indonesian_token_id
         ]
-
+        
     def build_inputs_with_special_tokens(
         self, token_ids_0: List[int], token_ids_1: Optional[List[int]] = None
     ) -> List[int]:
         """
         Build model inputs from a sequence or a pair of sequence for sequence classification tasks by concatenating and
         adding special tokens. An CamemBERT sequence has the following format:
-
         - single sequence: ``<s> X </s>``
         - pair of sequences: ``<s> A </s></s> B </s>``
-
         Args:
             token_ids_0 (:obj:`List[int]`):
                 List of IDs to which the special tokens will be added.
             token_ids_1 (:obj:`List[int]`, `optional`):
                 Optional second list of IDs for sequence pairs.
-
         Returns:
             :obj:`List[int]`: List of `input IDs <../glossary.html#input-ids>`__ with the appropriate special tokens.
         """
@@ -134,7 +142,6 @@ class IndoNLGTokenizer(PreTrainedTokenizer):
         """
         Retrieve sequence ids from a token list that has no special tokens added. This method is called when adding
         special tokens using the tokenizer ``prepare_for_model`` method.
-
         Args:
             token_ids_0 (:obj:`List[int]`):
                 List of IDs.
@@ -142,7 +149,6 @@ class IndoNLGTokenizer(PreTrainedTokenizer):
                 Optional second list of IDs for sequence pairs.
             already_has_special_tokens (:obj:`bool`, `optional`, defaults to :obj:`False`):
                 Whether or not the token list is already formatted with special tokens for the model.
-
         Returns:
             :obj:`List[int]`: A list of integers in the range [0, 1]: 1 for a special token, 0 for a sequence token.
         """
@@ -159,17 +165,13 @@ class IndoNLGTokenizer(PreTrainedTokenizer):
         self, token_ids_0: List[int], token_ids_1: Optional[List[int]] = None
     ) -> List[int]:
         """
-        Create a mask from the two sequences passed to be used 
-        in a sequence-pair classification task. CamemBERT, like
-        RoBERTa, does not make use of token type ids, therefore 
-        a list of zeros is returned.
-
+        Create a mask from the two sequences passed to be used in a sequence-pair classification task. CamemBERT, like
+        RoBERTa, does not make use of token type ids, therefore a list of zeros is returned.
         Args:
             token_ids_0 (:obj:`List[int]`):
                 List of IDs.
             token_ids_1 (:obj:`List[int]`, `optional`):
                 Optional second list of IDs for sequence pairs.
-
         Returns:
             :obj:`List[int]`: List of zeros.
         """
@@ -235,4 +237,3 @@ class IndoNLGTokenizer(PreTrainedTokenizer):
         self.decode_special_token = prev_val
         
         return outputs
-        

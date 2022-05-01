@@ -1,22 +1,31 @@
 # ID Recibrew2
 
-Indonesia RecipeBrew 2
+Training code for Indonesian Recipe Generator! 
 
-## Planning
+For more information, please visit my [blog](https://haryoa.github.io/posts/id-recipe-generator)
 
-Data: Recipe
-Model: 
-- Transformer (OLD NO NEED TO EXPERIMENT!)
-- T5 Indo
-- IndoBart
-- GPT2
+## Requirements
 
-Evaluation:
-- BLEU
+You need to have Python version 3.8
 
-Analysis!
-- TBD
+1. First, install Pytorch from the [Pytorch site](https://pytorch.org/).
+2. Then, install `pandas` (either using conda or pip)
+3. do `pip install -r requirements.txt`
 
-Good to have if have time
-- Step to produce!
+## Training
+
+Run this command
+
+```
+python -m idrecibrew2.cli run-sc --scenario <SCENARIO> --gpus <GPUS>
+```
+
+- `<SCENARIO>`: experiment scenario that you want to run.
+- `<GPUS>`: Gpus used, It must contain a list argument.
+
+There are multiple scenarios that you can use to train the model:
+
+1. `indobert-v2`: Training by fine-tuning a indobart-v2 model
+2. `indogpt-2` : Training by fine-tuning a indogpt model
+3. `indo-t5-2` : Training by fine-tuning a t5 model
 
